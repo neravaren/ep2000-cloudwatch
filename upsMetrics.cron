@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+* * * * * pi /home/pi/Projects/must-ep20-reader/./send.py >> /home/pi/Projects/must-ep20-reader/run.log
