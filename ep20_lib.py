@@ -25,6 +25,10 @@ class EPAVRState(Enum):
     AVR_BYPASS = 0
     AVR_STEPDWON = 1
     AVR_BOOST = 2
+    AVR_UNKNOWN3 = 3
+    AVR_UNKNOWN4 = 4
+    AVR_UNKNOWN5 = 5
+    AVR_UNKNOWN6 = 6
 
 
 class EPChargeState(Enum):

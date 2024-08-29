@@ -8,6 +8,7 @@ from boto3 import session
 from botocore.config import Config
 
 from ep20_api import read_ups_status
+from ep20_lib import EPWorkState
 
 
 AWS_REGION = os.getenv('AWS_REGION', 'eu-central-1')
