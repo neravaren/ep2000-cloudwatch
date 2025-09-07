@@ -57,6 +57,7 @@ def send_metrics(client, time, name, value, unit):
                 ],
                 'Value': value,
                 'Unit': unit_for_metric,
+                'StorageResolution': 1,  # for 30 second period logging
             },
         ]
     )
