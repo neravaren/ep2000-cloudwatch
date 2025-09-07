@@ -22,6 +22,12 @@ def get_client():
     """
     config = Config(
         region_name=AWS_REGION,
+        connect_timeout=2,  # timeout for establishing connection
+        read_timeout=2,     # timeout for receiving data
+        retries={
+            'max_attempts': 1,  # total retries
+            'mode': 'standard'  # standard retry mode
+        }
     )
     client = session.Session().client('cloudwatch', config=config)
     return client
