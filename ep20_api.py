@@ -92,20 +92,16 @@ def send_command(connection, command):
     # Send
     if SERIAL_LOGS:
         print(f'[serial][>>] {text_arr}')
+    connection.reset_input_buffer()
     connection.write(text_arr)
     time.sleep(0.3)
-    # Read
-    resp_data = b''
-    resp_data_str = ''
-    for i in range(resp_size):
-        x = connection.read()
-        x_hex = to_hex(x).upper()
-        resp_data = resp_data + x
-        resp_data_str = resp_data_str + x_hex + ' '
-        if len(resp_data) == resp_size:
-            break
+    # Read, the port timeout limits the total wait for all bytes
+    resp_data = connection.read(resp_size)
+    resp_data_str = ''.join(f'{x:02X} ' for x in resp_data)
     if SERIAL_LOGS:
         print(f'[serial][<<] {resp_data_str}')
+    if len(resp_data) != resp_size:
+        raise TimeoutError(f'UPS response: got {len(resp_data)} of {resp_size} bytes')
     return resp_data_str
 
 
@@ -216,8 +212,8 @@ class CommandTwo(Command):
 
 
 def read_ups_status(port):
-    RS485 = open_serial(port)
-    data1 = CommandOne(connection=RS485).execute()
-    data2 = CommandTwo(connection=RS485).execute()
+    with open_serial(port) as RS485:
+        data1 = CommandOne(connection=RS485).execute()
+        data2 = CommandTwo(connection=RS485).execute()
     dataAll = {'Time': datetime.now(tz=timezone.utc).isoformat(), **data1, **data2}
     return dataAll
