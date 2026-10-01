@@ -106,3 +106,36 @@ uv run pytest
 `run.sh` runs `sendMQTT.py`. To use CloudWatch, change the line in `run.sh`.
 
 Sample CRON task described in file `upsMetrics.cron`. Copy to `/etc/cron.d/` and change path inside to actual one.
+
+## Wi-Fi Stability (Raspberry Pi)
+
+### 1. Disable Wi-Fi power saving
+
+This is the most common cause of Wi-Fi drops on a Pi Zero 2W.
+
+Raspberry Pi OS Bookworm (NetworkManager):
+```bash
+sudo nmcli connection modify "$(nmcli -t -f NAME connection show --active | head -1)" 802-11-wireless.powersave 2
+sudo nmcli connection up "$(nmcli -t -f NAME connection show --active | head -1)"
+```
+
+Older Raspberry Pi OS: add `/sbin/iw dev wlan0 set power_save off` to `/etc/rc.local` before `exit 0`.
+
+Check: `iw dev wlan0 get power_save` must show `Power save: off`.
+
+### 2. Wi-Fi watchdog
+
+`wifi-watchdog.sh` runs every minute as root. It pings the MQTT broker (`10.2.1.12`) and the default gateway:
+- Ping OK: reset the failure counter.
+- Ping fails: restart Wi-Fi.
+- Ping fails 10 checks in a row (about 10 minutes): reboot. There is no reboot in the first 15 minutes after boot, so a long router outage cannot cause a reboot loop.
+
+Install:
+```bash
+chmod +x wifi-watchdog.sh
+sudo cp wifi-watchdog.cron /etc/cron.d/wifi-watchdog
+```
+
+Change the path inside `/etc/cron.d/wifi-watchdog` to the actual one. Settings (environment variables): `WATCHDOG_TARGET`, `WATCHDOG_IFACE`, `WATCHDOG_REBOOT_AFTER`, `WATCHDOG_MIN_UPTIME`.
+
+Log: `journalctl -t wifi-watchdog` or `grep wifi-watchdog /var/log/syslog`.
