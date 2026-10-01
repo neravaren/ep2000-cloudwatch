@@ -1,17 +1,19 @@
-# Ups CloudWatch Metrics for EP2000
+# Ups Metrics for EP2000
 
-Solution for automatic sending metrics from `Must EP2000Pro` UPS to CloudWatch.
+Solution for automatic sending metrics from `Must EP2000Pro` UPS to Home Assistant (MQTT) or AWS CloudWatch.
 
 ## Configuration
 
-AWS Credentials need to be configured. Create a copy of `.env.sample` named as `.env` and update with actual keys.
+Create a copy of `.env.sample` named as `.env` and update with actual values:
+- `MQTT_*` for Home Assistant MQTT (`sendMQTT.py`).
+- `AWS_*` for CloudWatch (`sendCW.py`).
 
 ## Read Metrics
 
 Launch example:
 ```bash
 export UPS_PORT="/dev/ttyUSB0"
-python read.py
+uv run read.py
 ```
 
 Sample output:
@@ -56,13 +58,29 @@ Sample output:
 }
 ```
 
-## Send Metrics
+## Send Metrics to Home Assistant (MQTT)
 
 Launch example:
 ```bash
-export UPS_PORT="/dev/ttyUSB0" 
+export UPS_PORT="/dev/ttyUSB0"
+uv run sendMQTT.py
+```
+
+Each run publishes:
+- Discovery config (retained) to `homeassistant/<sensor|binary_sensor>/must_ep2000/<metric>/config`. Home Assistant creates the device `Must EP2000` with all entities.
+- All metrics as one JSON message to `must_ep2000/state`.
+
+Entities show as unavailable if no update comes for 120 seconds.
+
+Optional settings: `MQTT_DISCOVERY_PREFIX` (default `homeassistant`), `MQTT_DEVICE_ID` (default `must_ep2000`).
+
+## Send Metrics to CloudWatch
+
+Launch example:
+```bash
+export UPS_PORT="/dev/ttyUSB0"
 export METRIC_NAMESPACE="Home/UPS/EP20"
-python send.py
+uv run sendCW.py
 ```
 
 Output Metrics:
@@ -77,6 +95,14 @@ Output Metrics:
 - BatterySoc
 - TransformerTemp
 
+## Tests
+
+```bash
+uv run pytest
+```
+
 ## Cron
+
+`run.sh` runs `sendMQTT.py`. To use CloudWatch, change the line in `run.sh`.
 
 Sample CRON task described in file `upsMetrics.cron`. Copy to `/etc/cron.d/` and change path inside to actual one.
